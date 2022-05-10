@@ -48,7 +48,7 @@ PDF файлын хаш утгыг тооцож ухаалаг гэрээнд б
 
 
 #### Жишээ
-```shell
+```python
 from verify4py.PdfIssuer import PdfIssuer
 
 issuer = PdfIssuer(certify_contract_address,
@@ -97,7 +97,7 @@ except Exception as e:
 
 
 #### Жишээ
-```shell
+```python
 from verify4py.PdfIssuer import PdfIssuer
 
 issuer = PdfIssuer(certify_contract_address,
@@ -105,8 +105,8 @@ issuer = PdfIssuer(certify_contract_address,
                   chain_id=3305)
 
 try:
-   result = issuer.verify_pdf(file_path) 
-   print("Result: {}", result)
+    result = issuer.verify_pdf(file_path) 
+    print("Result: {}", result)
 except Exception as e:
     print("Error: {}", e)
 ```
@@ -137,7 +137,7 @@ except Exception as e:
 | `passphrase`   | Хувийн түлхүүрийн passphrase файл | үгүй /private_key өгөөгүй бол заавал/           |
 
 #### Жишээ
-```shell
+```python
 from verify4py.PdfIssuer import PdfIssuer
 
 issuer = PdfIssuer(certify_contract_address,
@@ -146,11 +146,11 @@ issuer = PdfIssuer(certify_contract_address,
                   issuer_name,
                   chain_id=3305)
 try:
-   txid, error = issuer.revoke(file_path,
+    txid, error = issuer.revoke(file_path,
                               revoker_name,
                               key_store,
                               passphrase)
-  print("Txid: {}", txid)
+    print("Txid: {}", txid)
 except Exception as e:
-  print("Error: {}", e)  
+    print("Error: {}", e)  
 ```
