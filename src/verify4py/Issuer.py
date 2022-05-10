@@ -91,11 +91,24 @@ class Issuer:
             tx_hash = self.__client.eth.send_raw_transaction(signed.rawTransaction)
             tx_res = self.__client.eth.wait_for_transaction_receipt(tx_hash)
             if tx_res.status == 1:
+                try:
+                    self.write_txid(hash_value, self.__client.toHex(tx_hash), issuer_address, pk)
+                except Exception as e:
+                    print("Error occurred when sending txid" + str(e))
                 return self.__client.toHex(tx_hash), None
             return '', 'Failed on blockchain'
         except Exception as e:
             print(e)
             return '', e
+
+    def write_txid(self, hash_value: str, tx_hash: str, issuer_address, pk):
+        nonce = self.__client.eth.get_transaction_count(self.__client.toChecksumAddress(issuer_address))
+        func = self.__contract_instance.functions.addTransactionId(hash_value, tx_hash)
+        tx = func.buildTransaction(
+            {'from': issuer_address, 'gasPrice': self.__client.toWei('1000', 'gwei'),
+             'nonce': nonce, 'gas': DEFAULT_GAS_LIMIT})
+        signed = self.__client.eth.account.sign_transaction(tx, pk)
+        self.__client.eth.send_raw_transaction(signed.rawTransaction)
 
     def revoke(self,
                merkle_root,
@@ -181,7 +194,8 @@ class Issuer:
             'version': arr[7],
             'description': arr[8],
             'revokerName': arr[9],
-            'revokedAt': arr[10]
+            'revokedAt': arr[10],
+            'txid': arr[11]
         })
 
     def get_issuer(self, address: str):
@@ -212,6 +226,7 @@ class CertStruct:
     description: str
     revokerName: str
     revokedAt: int
+    txid: str
 
     def __init__(self, dictionary):
         for k, v in dictionary.items():

@@ -65,6 +65,24 @@ abi = [
         "inputs": [
             {
                 "internalType": "string",
+                "name": "_hash",
+                "type": "string"
+            },
+            {
+                "internalType": "string",
+                "name": "_txid",
+                "type": "string"
+            }
+        ],
+        "name": "addTransactionId",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "string",
                 "name": "",
                 "type": "string"
             }
@@ -125,6 +143,11 @@ abi = [
                 "internalType": "uint256",
                 "name": "revokedAt",
                 "type": "uint256"
+            },
+            {
+                "internalType": "string",
+                "name": "txid",
+                "type": "string"
             }
         ],
         "stateMutability": "view",
@@ -246,6 +269,11 @@ abi = [
                         "internalType": "uint256",
                         "name": "revokedAt",
                         "type": "uint256"
+                    },
+                    {
+                        "internalType": "string",
+                        "name": "txid",
+                        "type": "string"
                     }
                 ],
                 "internalType": "struct CertificationRegistration.Certification",
@@ -322,6 +350,11 @@ abi = [
                         "internalType": "uint256",
                         "name": "revokedAt",
                         "type": "uint256"
+                    },
+                    {
+                        "internalType": "string",
+                        "name": "txid",
+                        "type": "string"
                     }
                 ],
                 "internalType": "struct CertificationRegistration.Certification",
@@ -398,6 +431,11 @@ abi = [
                         "internalType": "uint256",
                         "name": "revokedAt",
                         "type": "uint256"
+                    },
+                    {
+                        "internalType": "string",
+                        "name": "txid",
+                        "type": "string"
                     }
                 ],
                 "internalType": "struct CertificationRegistration.Certification",
@@ -595,6 +633,11 @@ abi = [
                 "internalType": "uint256",
                 "name": "revokedAt",
                 "type": "uint256"
+            },
+            {
+                "internalType": "string",
+                "name": "txid",
+                "type": "string"
             }
         ],
         "stateMutability": "view",
@@ -664,6 +707,11 @@ abi = [
                 "internalType": "uint256",
                 "name": "revokedAt",
                 "type": "uint256"
+            },
+            {
+                "internalType": "string",
+                "name": "txid",
+                "type": "string"
             }
         ],
         "stateMutability": "view",
