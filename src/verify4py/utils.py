@@ -29,8 +29,13 @@ def decrypt_account(passphrase: str, path: str):
 
 def calc_hash(file):
     with open(file, 'rb') as cert:
-        str_val = cert.read()
-        hash_str = hashlib.sha256(str_val).hexdigest()
+        byte_val = cert.read()
+        hash_str = hashlib.sha256(byte_val).hexdigest()
+    return hash_str
+
+
+def calc_hash_str(str_val: str):
+    hash_str = hashlib.sha256(str_val.encode('utf-8')).hexdigest()
     return hash_str
 
 
