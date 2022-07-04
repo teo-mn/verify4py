@@ -66,9 +66,7 @@ class UniversityDiplomaIssuer(Issuer):
         pdf_utils.add_metadata(source_file_path, destination_file_path, verifymn=json.dumps(verifymn))
         hash_val = Utils.calc_hash(destination_file_path)
         meta_str = json_wrap(meta_data)
-        print(meta_str)
         hash_meta = Utils.calc_hash_str(meta_str)
-        print(hash_val, hash_image, hash_meta)
         (tx, proof), error = self.issue(id, hash_val, expire_date, desc, private_key, key_store, passphrase,
                                         hash_image=hash_image, hash_json=hash_meta)
         return tx, error

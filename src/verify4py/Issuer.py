@@ -80,7 +80,8 @@ class Issuer:
         if cert.id > 0:  # id
             raise ValueError("Certificate already registered")
 
-        tx, error = self.__issue_util(hash_value, self.issuer_address, id, expire_date, VERSION, desc, pk)
+        tx, error = self.__issue_util(hash_value, self.issuer_address, id, expire_date, VERSION, desc, pk,
+                                      hash_image, hash_json)
         if error is not None:
             print(error)
             raise RuntimeError(error)
