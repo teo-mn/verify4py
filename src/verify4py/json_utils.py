@@ -5,11 +5,11 @@ def json_wrap(data):
     if data is None:
         return "null"
     if type(data) is str:
-        return "\"" + data + "\""
+        return "\"" + data.lower() + "\""
     if type(data) is int:
-        return str(data)
+        return str(data).lower()
     if type(data) is float:
-        return str(data)
+        return str(data).lower()
     if type(data) is list:
         res = "["
         first = True
@@ -19,7 +19,7 @@ def json_wrap(data):
             first = False
             res += json_wrap(x)
         res += "]"
-        return res
+        return res.lower()
     if type(data) is dict:
         data_dict = dict(data)
         keys = data_dict.keys()
@@ -32,8 +32,8 @@ def json_wrap(data):
             res += "\"" + key + "\":"
             res += json_wrap(data[key])
         res += "}"
-        return res
-    return str(data)
+        return res.lower()
+    return str(data).lower()
 
 
 if __name__ == "__main__":

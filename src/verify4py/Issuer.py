@@ -5,7 +5,8 @@ import time
 from web3 import Web3
 from web3.auto import w3
 import verify4py.utils as Utils
-from verify4py.certify_sc_utils import abi
+from verify4py.certify_sc_utils import abi as abi_cert
+from verify4py.university_abi import abi as abi_univ
 from verify4py.chainpoint import ChainPointV2
 
 DEFAULT_GAS_LIMIT = 2000000
@@ -18,20 +19,27 @@ class Issuer:
                  issuer_address='',
                  issuer_name='',
                  chain_id=1104,
-                 hash_type='sha256'):
+                 hash_type='sha256',
+                 contract_type=''):
         self.smart_contract_address = w3.toChecksumAddress(smart_contract_address)
         self.issuer_address = w3.toChecksumAddress(issuer_address) if issuer_address != '' else ''
         self.issuer_name = issuer_name
         self.node_host = node_host
         self.chain_id = chain_id
         self.hash_type = hash_type
+        self.contract_type = contract_type
         self.__client = Web3(Web3.HTTPProvider(node_host))
+
+        if contract_type == 'university':
+            abi = abi_univ
+        else:
+            abi = abi_cert
         self.__contract_instance = self.__client.eth.contract(address=self.smart_contract_address, abi=abi)
 
     def get_pk(self,
                private_key: str = "",
                key_store="",
-               passphrase: str = "", ):
+               passphrase: str = ""):
         pk = private_key
         if private_key == "":
             if os.path.isdir(key_store):
@@ -51,7 +59,9 @@ class Issuer:
               private_key: str = "",
               key_store="",
               passphrase: str = "",
-              do_hash=False
+              do_hash=False,
+              hash_image: str = "",
+              hash_json: str = ""
               ):
         pk = self.get_pk(private_key, key_store, passphrase)
 
@@ -79,11 +89,16 @@ class Issuer:
 
         return (tx, proof), None
 
-    def __issue_util(self, hash_value, issuer_address, cert_num, expire_date, version, desc, pk):
+    def __issue_util(self, hash_value, issuer_address, cert_num, expire_date, version, desc, pk,
+                     hash_image="", hash_json=""):
         nonce = self.__client.eth.get_transaction_count(self.__client.toChecksumAddress(issuer_address))
         try:
-
-            func = self.__contract_instance.functions.addCertification(hash_value, cert_num, expire_date, version, desc)
+            if self.contract_type == "":
+                func = self.__contract_instance.functions.addCertification(hash_value, cert_num, expire_date, version,
+                                                                           desc)
+            else:
+                func = self.__contract_instance.functions.addCertification(hash_value, hash_image, hash_json,
+                                                                           cert_num, expire_date, desc)
             tx = func.buildTransaction(
                 {'from': issuer_address, 'gasPrice': self.__client.toWei('1000', 'gwei'),
                  'nonce': nonce, 'gas': DEFAULT_GAS_LIMIT})
@@ -183,19 +198,37 @@ class Issuer:
 
     def get_certificate(self, merkle_root):
         arr = self.__contract_instance.functions.getCertification(merkle_root).call()
+        if self.contract_type == "":
+            return CertStruct({
+                'id': arr[0],
+                'certNum': arr[1],
+                'hash': arr[2],
+                'issuer': arr[3],
+                'expireDate': arr[4],
+                'createdAt': arr[5],
+                'isRevoked': arr[6],
+                'version': arr[7],
+                'description': arr[8],
+                'revokerName': arr[9],
+                'revokedAt': arr[10],
+                'txid': arr[11]
+            })
+
+        arr2 = self.__contract_instance.functions.getRevokeInfo(merkle_root).call()
         return CertStruct({
             'id': arr[0],
             'certNum': arr[1],
             'hash': arr[2],
-            'issuer': arr[3],
-            'expireDate': arr[4],
-            'createdAt': arr[5],
-            'isRevoked': arr[6],
-            'version': arr[7],
+            'image_hash': arr[3],
+            'meta_hash': arr[4],
+            'issuer': arr[5],
+            'expireDate': arr[6],
+            'createdAt': arr[7],
             'description': arr[8],
-            'revokerName': arr[9],
-            'revokedAt': arr[10],
-            'txid': arr[11]
+            'txid': arr[9],
+            'isRevoked': arr2[1],
+            'revokerName': arr2[3],
+            'revokedAt': arr2[5],
         })
 
     def get_issuer(self, address: str):
