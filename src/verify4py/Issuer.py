@@ -80,6 +80,9 @@ class Issuer:
         if cert.id > 0:  # id
             raise ValueError("Certificate already registered")
 
+        if self.is_duplicated_cert_num(cert_num=id):
+            raise ValueError("Certificate number already registered")
+
         tx, error = self.__issue_util(hash_value, self.issuer_address, id, expire_date, VERSION, desc, pk,
                                       hash_image, hash_json)
         if error is not None:
@@ -196,6 +199,18 @@ class Issuer:
 
     def get_credit(self, address: str):
         return self.__contract_instance.functions.getCredit(self.__client.toChecksumAddress(address)).call()
+
+    def is_duplicated_cert_num(self, cert_num: str):
+        if self.contract_type == '':
+            return False
+        arr = self.__contract_instance.functions.getCertificationByCertNum(cert_num).call()
+        if arr[0] > 0:
+            arr2 = self.__contract_instance.functions.getRevokeInfo(arr[2]).call()
+            if arr2[1] is True:
+                return False
+            else:
+                return True
+        return False
 
     def get_certificate(self, merkle_root):
         arr = self.__contract_instance.functions.getCertification(merkle_root).call()
