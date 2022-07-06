@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setuptools.setup(
     name="verify4py",
-    version="0.1.3",
+    version="0.1.4",
     author="Surenbayar Doloonjin",
     author_email="surenbayar@ailab.mn",
     description="Issue certificates using blockchain and smart contract",

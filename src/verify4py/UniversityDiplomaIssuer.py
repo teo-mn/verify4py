@@ -1,6 +1,8 @@
 import json
 import os
 
+from pdfrw import PdfReader
+
 import verify4py.pdf as pdf_utils
 import verify4py.utils as Utils
 from verify4py.Issuer import Issuer
@@ -70,3 +72,24 @@ class UniversityDiplomaIssuer(Issuer):
         (tx, proof), error = self.issue(id, hash_val, expire_date, desc, private_key, key_store, passphrase,
                                         hash_image=hash_image, hash_json=hash_meta)
         return tx, error
+
+    def revoke_pdf(self,
+                   file_path: str,
+                   revoker_name: str,
+                   private_key: str = "",
+                   key_store="",
+                   passphrase: str = ""
+                   ):
+        # validation
+        if not os.path.exists(file_path) or not os.path.isfile(file_path):
+            raise ValueError('Source path should be valid')
+        hash_val = Utils.calc_hash(file_path)
+        return self.revoke(hash_val.lower(), revoker_name, private_key, key_store, passphrase)
+
+    def verify_pdf(self, file_path):
+        hash_val = Utils.calc_hash(file_path)
+        pdf = PdfReader(file_path)
+        metadata = pdf.Info.get('/verifymn')
+        result = self.verify_root(hash_val.lower())
+        result['metadata'] = metadata
+        return result
