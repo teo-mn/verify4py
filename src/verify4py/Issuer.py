@@ -127,7 +127,8 @@ class Issuer:
             {'from': issuer_address, 'gasPrice': self.__client.toWei('1000', 'gwei'),
              'nonce': nonce, 'gas': DEFAULT_GAS_LIMIT})
         signed = self.__client.eth.account.sign_transaction(tx, pk)
-        self.__client.eth.send_raw_transaction(signed.rawTransaction)
+        tx_hash2 = self.__client.eth.send_raw_transaction(signed.rawTransaction)
+        self.__client.eth.wait_for_transaction_receipt(tx_hash2)
 
     def revoke(self,
                merkle_root,
