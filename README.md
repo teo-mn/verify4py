@@ -154,3 +154,9 @@ try:
 except Exception as e:
     print("Error: {}", e)  
 ```
+
+### Build хийх
+
+```
+python setup.py sdist
+```
