@@ -146,7 +146,7 @@ issuer = PdfIssuer(certify_contract_address,
                   issuer_name,
                   chain_id=3305)
 try:
-    txid, error = issuer.revoke(file_path,
+    txid, error = issuer.revoke_pdf(file_path,
                               revoker_name,
                               key_store,
                               passphrase)
