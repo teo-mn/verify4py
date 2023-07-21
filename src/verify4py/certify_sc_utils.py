@@ -808,17 +808,17 @@ def add_certification(hash_str: str, cert_num: str, expire_date: int, version: s
                       address: str, contract_address: str, pk: str):
     client = Web3(Web3.HTTPProvider(node_url))
     contract_instance = client.eth.contract(address=contract_address, abi=abi)
-    nonce = client.eth.get_transaction_count(client.toChecksumAddress(address))
+    nonce = client.eth.get_transaction_count(client.to_checksum_address(address))
 
     try:
         func = contract_instance.functions.addCertification(hash_str, cert_num, expire_date, version, desc)
-        tx = func.buildTransaction(
-            {'from': address, 'gasPrice': client.toWei('1000', 'gwei'), 'nonce': nonce, 'gas': DEFAULT_GAS_LIMIT})
+        tx = func.build_transaction(
+            {'from': address, 'gasPrice': client.to_wei('1000', 'gwei'), 'nonce': nonce, 'gas': DEFAULT_GAS_LIMIT})
         signed = client.eth.account.sign_transaction(tx, pk)
         tx_hash = client.eth.send_raw_transaction(signed.rawTransaction)
         tx_res = client.eth.wait_for_transaction_receipt(tx_hash)
         if tx_res.status == 1:
-            return client.toHex(tx_hash), None
+            return client.to_hex(tx_hash), None
         return '', 'Failed on blockchain'
     except Exception as e:
         print(e)
@@ -828,17 +828,17 @@ def add_certification(hash_str: str, cert_num: str, expire_date: int, version: s
 def revoke_certification(hash_str: str, revoker_name: str, node_url: str, contract_address: str, address: str, pk: str):
     client = Web3(Web3.HTTPProvider(node_url))
     contract_instance = client.eth.contract(address=contract_address, abi=abi)
-    nonce = client.eth.get_transaction_count(client.toChecksumAddress(address))
+    nonce = client.eth.get_transaction_count(client.to_checksum_address(address))
 
     try:
         func = contract_instance.functions.revoke(hash_str, revoker_name)
-        tx = func.buildTransaction(
-            {'from': address, 'gasPrice': client.toWei('1000', 'gwei'), 'nonce': nonce, 'gas': DEFAULT_GAS_LIMIT})
+        tx = func.build_transaction(
+            {'from': address, 'gasPrice': client.to_wei('1000', 'gwei'), 'nonce': nonce, 'gas': DEFAULT_GAS_LIMIT})
         signed = client.eth.account.sign_transaction(tx, pk)
         tx_hash = client.eth.send_raw_transaction(signed.rawTransaction)
         tx_res = client.eth.wait_for_transaction_receipt(tx_hash)
         if tx_res.status == 1:
-            return client.toHex(tx_hash), None
+            return client.to_hex(tx_hash), None
         return '', 'Failed on blockchain'
     except Exception as e:
         print(e)
@@ -851,17 +851,17 @@ def revoke_certification_by_id(cert_id: int, revoker_name: str, node_url: str, c
     # f = open('abi.json')
     # abi = json.load(f)
     contract_instance = client.eth.contract(address=contract_address, abi=abi)
-    nonce = client.eth.get_transaction_count(client.toChecksumAddress(address))
+    nonce = client.eth.get_transaction_count(client.to_checksum_address(address))
 
     try:
         func = contract_instance.functions.revokeById(cert_id, revoker_name)
-        tx = func.buildTransaction(
-            {'from': address, 'gasPrice': client.toWei('1000', 'gwei'), 'nonce': nonce, 'gas': DEFAULT_GAS_LIMIT})
+        tx = func.build_transaction(
+            {'from': address, 'gasPrice': client.to_wei('1000', 'gwei'), 'nonce': nonce, 'gas': DEFAULT_GAS_LIMIT})
         signed = client.eth.account.sign_transaction(tx, pk)
         tx_hash = client.eth.send_raw_transaction(signed.rawTransaction)
         tx_res = client.eth.wait_for_transaction_receipt(tx_hash)
         if tx_res.status == 1:
-            return client.toHex(tx_hash), None
+            return client.to_hex(tx_hash), None
         return '', 'Failed on blockchain'
     except Exception as e:
         print(e)
@@ -873,17 +873,17 @@ def charge_credit(address: str, credit: int, owner_address, owner_pk, node_url, 
     # f = open('abi.json')
     # abi = json.load(f)
     contract_instance = client.eth.contract(address=contract_address, abi=abi)
-    nonce = client.eth.get_transaction_count(client.toChecksumAddress(owner_address))
+    nonce = client.eth.get_transaction_count(client.to_checksum_address(owner_address))
 
     try:
-        func = contract_instance.functions.chargeCredit(client.toChecksumAddress(address), credit)
-        tx = func.buildTransaction(
-            {'from': address, 'gasPrice': client.toWei('1000', 'gwei'), 'nonce': nonce, 'gas': DEFAULT_GAS_LIMIT})
+        func = contract_instance.functions.chargeCredit(client.to_checksum_address(address), credit)
+        tx = func.build_transaction(
+            {'from': address, 'gasPrice': client.to_wei('1000', 'gwei'), 'nonce': nonce, 'gas': DEFAULT_GAS_LIMIT})
         signed = client.eth.account.sign_transaction(tx, owner_pk)
         tx_hash = client.eth.send_raw_transaction(signed.rawTransaction)
         tx_res = client.eth.wait_for_transaction_receipt(tx_hash)
         if tx_res.status == 1:
-            return client.toHex(tx_hash), None
+            return client.to_hex(tx_hash), None
         return '', 'Failed on blockchain'
     except Exception as e:
         print(e)
@@ -895,7 +895,7 @@ def get_credit(address: str, contract_address, node_url):
     contract_instance = client.eth.contract(address=contract_address, abi=abi)
 
     return contract_instance.functions.getCredit(
-        client.toChecksumAddress(address)).call()
+        client.to_checksum_address(address)).call()
 
 
 def get_certificate(hash_str: str, contract_address, node_url):
