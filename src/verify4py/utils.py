@@ -24,7 +24,7 @@ def decrypt_account(passphrase: str, path: str):
     with open(path) as keyfile:
         encrypted_key = keyfile.read()
         private_key = w3.eth.account.decrypt(encrypted_key, passphrase)
-        return w3.toHex(private_key)
+        return w3.to_hex(private_key)
 
 
 def calc_hash(file):

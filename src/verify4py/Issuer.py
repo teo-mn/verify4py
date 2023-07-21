@@ -21,8 +21,8 @@ class Issuer:
                  chain_id=1104,
                  hash_type='sha256',
                  contract_type=''):
-        self.smart_contract_address = w3.toChecksumAddress(smart_contract_address)
-        self.issuer_address = w3.toChecksumAddress(issuer_address) if issuer_address != '' else ''
+        self.smart_contract_address = w3.to_checksum_address(smart_contract_address)
+        self.issuer_address = w3.to_checksum_address(issuer_address) if issuer_address != '' else ''
         self.issuer_name = issuer_name
         self.node_host = node_host
         self.chain_id = chain_id
@@ -95,7 +95,7 @@ class Issuer:
 
     def __issue_util(self, hash_value, issuer_address, cert_num, expire_date, version, desc, pk,
                      hash_image="", hash_json=""):
-        nonce = self.__client.eth.get_transaction_count(self.__client.toChecksumAddress(issuer_address))
+        nonce = self.__client.eth.get_transaction_count(self.__client.to_checksum_address(issuer_address))
         try:
             if self.contract_type == "":
                 func = self.__contract_instance.functions.addCertification(hash_value, cert_num, expire_date, version,
@@ -103,28 +103,28 @@ class Issuer:
             else:
                 func = self.__contract_instance.functions.addCertification(hash_value, hash_image, hash_json,
                                                                            cert_num, expire_date, desc)
-            tx = func.buildTransaction(
-                {'from': issuer_address, 'gasPrice': self.__client.toWei('1000', 'gwei'),
+            tx = func.build_transaction(
+                {'from': issuer_address, 'gasPrice': self.__client.to_wei('1000', 'gwei'),
                  'nonce': nonce, 'gas': DEFAULT_GAS_LIMIT})
             signed = self.__client.eth.account.sign_transaction(tx, pk)
             tx_hash = self.__client.eth.send_raw_transaction(signed.rawTransaction)
             tx_res = self.__client.eth.wait_for_transaction_receipt(tx_hash)
             if tx_res.status == 1:
                 try:
-                    self.write_txid(hash_value, self.__client.toHex(tx_hash), issuer_address, pk)
+                    self.write_txid(hash_value, self.__client.to_hex(tx_hash), issuer_address, pk)
                 except Exception as e:
                     print("Error occurred when sending txid" + str(e))
-                return self.__client.toHex(tx_hash), None
+                return self.__client.to_hex(tx_hash), None
             return '', 'Failed on blockchain'
         except Exception as e:
             print(e)
             return '', e
 
     def write_txid(self, hash_value: str, tx_hash: str, issuer_address, pk):
-        nonce = self.__client.eth.get_transaction_count(self.__client.toChecksumAddress(issuer_address))
+        nonce = self.__client.eth.get_transaction_count(self.__client.to_checksum_address(issuer_address))
         func = self.__contract_instance.functions.addTransactionId(hash_value, tx_hash)
-        tx = func.buildTransaction(
-            {'from': issuer_address, 'gasPrice': self.__client.toWei('1000', 'gwei'),
+        tx = func.build_transaction(
+            {'from': issuer_address, 'gasPrice': self.__client.to_wei('1000', 'gwei'),
              'nonce': nonce, 'gas': DEFAULT_GAS_LIMIT})
         signed = self.__client.eth.account.sign_transaction(tx, pk)
         tx_hash2 = self.__client.eth.send_raw_transaction(signed.rawTransaction)
@@ -156,18 +156,18 @@ class Issuer:
         return tx, None
 
     def revoke_util(self, merkle_root, revoker_address, revoker_name, pk):
-        nonce = self.__client.eth.get_transaction_count(self.__client.toChecksumAddress(revoker_address))
+        nonce = self.__client.eth.get_transaction_count(self.__client.to_checksum_address(revoker_address))
 
         try:
             func = self.__contract_instance.functions.revoke(merkle_root, revoker_name)
-            tx = func.buildTransaction(
-                {'from': revoker_address, 'gasPrice': self.__client.toWei('1000', 'gwei'), 'nonce': nonce,
+            tx = func.build_transaction(
+                {'from': revoker_address, 'gasPrice': self.__client.to_wei('1000', 'gwei'), 'nonce': nonce,
                  'gas': DEFAULT_GAS_LIMIT})
             signed = self.__client.eth.account.sign_transaction(tx, pk)
             tx_hash = self.__client.eth.send_raw_transaction(signed.rawTransaction)
             tx_res = self.__client.eth.wait_for_transaction_receipt(tx_hash)
             if tx_res.status == 1:
-                return self.__client.toHex(tx_hash), None
+                return self.__client.to_hex(tx_hash), None
             return '', 'Failed on blockchain'
         except Exception as e:
             print(e)
@@ -199,7 +199,7 @@ class Issuer:
         return result
 
     def get_credit(self, address: str):
-        return self.__contract_instance.functions.getCredit(self.__client.toChecksumAddress(address)).call()
+        return self.__contract_instance.functions.getCredit(self.__client.to_checksum_address(address)).call()
 
     def is_duplicated_cert_num(self, cert_num: str):
         if self.contract_type == '':
@@ -249,7 +249,7 @@ class Issuer:
         })
 
     def get_issuer(self, address: str):
-        arr = self.__contract_instance.functions.getIssuer(self.__client.toChecksumAddress(address)).call()
+        arr = self.__contract_instance.functions.getIssuer(self.__client.to_checksum_address(address)).call()
         return IssuerStruct({
             'id': arr[0],
             'name': arr[1],
