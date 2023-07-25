@@ -22,6 +22,6 @@ setuptools.setup(
     ],
     package_dir={"": "src"},
     packages=setuptools.find_packages(where="src"),
-    python_requires=">=3.6,<3.11",
-    install_requires=['web3==6.6.1', 'merkletools==1.0.3', 'pdfrw==0.3']
+    python_requires=">=3.6",
+    install_requires=['web3==6.6.1', 'pdfrw==0.3']
 )
