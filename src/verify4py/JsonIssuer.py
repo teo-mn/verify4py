@@ -3,7 +3,6 @@ import os
 
 import verify4py.utils as Utils
 from verify4py.Issuer import Issuer, VERSION
-from verify4py.chainpoint import ChainPointV2
 from verify4py.json_utils import json_wrap
 
 
@@ -69,8 +68,8 @@ class JsonIssuer(Issuer):
         if not os.path.exists(file_path) or not os.path.isfile(file_path):
             raise ValueError('Source path should be valid')
 
-        merkle_root = self.__verify_json_file(file_path)
-        return self.verify_root(merkle_root)
+        hash = self.__verify_json_file(file_path)
+        return self.verify_root(hash)
 
     def revoke_json(self, file_path: str, revoker_name: str,
                     private_key: str = "",
@@ -78,8 +77,8 @@ class JsonIssuer(Issuer):
                     passphrase: str = ""):
         if not os.path.exists(file_path) or not os.path.isfile(file_path):
             raise ValueError('Source path should be valid')
-        merkle_root = self.__verify_json_file(file_path)
-        return self.revoke(merkle_root, revoker_name, private_key, key_store, passphrase)
+        hash = self.__verify_json_file(file_path)
+        return self.revoke(hash, revoker_name, private_key, key_store, passphrase)
 
     def __verify_json_file(self, file_path):
         f = open(file_path)
@@ -90,7 +89,4 @@ class JsonIssuer(Issuer):
         json_data['verifymn'] = verifymn
         wrapped_json_str = json_wrap(json_data)
         hash_val = Utils.calc_hash_str(wrapped_json_str)
-        chainpoint = ChainPointV2()
-        if not chainpoint.validate_proof(chainpoint_proof['proof'], hash_val, chainpoint_proof['merkleRoot']):
-            raise ValueError("Chainpoint proof doesn't match")
-        return chainpoint_proof['merkleRoot']
+        return hash_val

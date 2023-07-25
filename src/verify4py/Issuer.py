@@ -7,7 +7,6 @@ from web3.auto import w3
 import verify4py.utils as Utils
 from verify4py.certify_sc_utils import abi as abi_cert
 from verify4py.university_abi import abi as abi_univ
-from verify4py.chainpoint import ChainPointV2
 
 DEFAULT_GAS_LIMIT = 2000000
 VERSION = "v1.0-python"
@@ -65,14 +64,11 @@ class Issuer:
               ):
         pk = self.get_pk(private_key, key_store, passphrase)
 
-        cp = ChainPointV2(self.hash_type)
-        cp.add_leaf([hash_value], do_hash=do_hash)
-        cp.make_tree()
         # check credit
         if self.get_credit(self.issuer_address) == 0:
             raise ValueError("Not enough credit")
 
-        cert = self.get_certificate(cp.get_merkle_root())
+        cert = self.get_certificate(hash_value)
 
         if cert.isRevoked:  # isRevoked flag
             raise ValueError("Certificate revoked")
@@ -89,9 +85,9 @@ class Issuer:
             print(error)
             raise RuntimeError(error)
             # insert proof
-        proof = cp.get_receipt(0, tx, self.chain_id != 1104)
 
-        return (tx, proof), None
+
+        return (tx, None), None
 
     def __issue_util(self, hash_value, issuer_address, cert_num, expire_date, version, desc, pk,
                      hash_image="", hash_json=""):
@@ -131,7 +127,7 @@ class Issuer:
         self.__client.eth.wait_for_transaction_receipt(tx_hash2)
 
     def revoke(self,
-               merkle_root,
+               hash,
                revoker_name,
                private_key: str = "",
                key_store="",
@@ -141,25 +137,25 @@ class Issuer:
         if self.get_credit(self.issuer_address) == 0:
             raise ValueError("Not enough credit")
 
-        cert = self.get_certificate(merkle_root)
+        cert = self.get_certificate(hash)
 
         if cert.id == 0:
             raise ValueError("Certificate not found")
         if cert.isRevoked:
             raise ValueError("Certificate already revoked")
 
-        tx, error = self.revoke_util(merkle_root, self.issuer_address, revoker_name, pk)
+        tx, error = self.revoke_util(hash, self.issuer_address, revoker_name, pk)
         if error is not None:
             print(error)
             raise RuntimeError(error)
 
         return tx, None
 
-    def revoke_util(self, merkle_root, revoker_address, revoker_name, pk):
+    def revoke_util(self, hash, revoker_address, revoker_name, pk):
         nonce = self.__client.eth.get_transaction_count(self.__client.to_checksum_address(revoker_address))
 
         try:
-            func = self.__contract_instance.functions.revoke(merkle_root, revoker_name)
+            func = self.__contract_instance.functions.revoke(hash, revoker_name)
             tx = func.build_transaction(
                 {'from': revoker_address, 'gasPrice': self.__client.to_wei('1000', 'gwei'), 'nonce': nonce,
                  'gas': DEFAULT_GAS_LIMIT})
@@ -173,14 +169,11 @@ class Issuer:
             print(e)
             return '', e
 
-    def verify_hash(self, hash_value, chainpoint_proof: str):
-        proof = json.loads(chainpoint_proof)['proof']
-        cp = ChainPointV2(self.hash_type)
-        merkle_root = cp.calc_merkle_root(proof, hash_value)
-        self.verify_root(merkle_root)
+    def verify_hash(self, hash_value):
+        self.verify_root(hash_value)
 
-    def verify_root(self, merkle_root):
-        cert = self.get_certificate(merkle_root)
+    def verify_root(self, hash):
+        cert = self.get_certificate(hash)
         issuer = self.get_issuer(cert.issuer)
         state = 'ISSUED'
         if cert.id == 0:
@@ -213,8 +206,8 @@ class Issuer:
                 return True
         return False
 
-    def get_certificate(self, merkle_root):
-        arr = self.__contract_instance.functions.getCertification(merkle_root).call()
+    def get_certificate(self, hash):
+        arr = self.__contract_instance.functions.getCertification(hash).call()
         if self.contract_type == "":
             return CertStruct({
                 'id': arr[0],
@@ -231,7 +224,7 @@ class Issuer:
                 'txid': arr[11]
             })
 
-        arr2 = self.__contract_instance.functions.getRevokeInfo(merkle_root).call()
+        arr2 = self.__contract_instance.functions.getRevokeInfo(hash).call()
         return CertStruct({
             'id': arr[0],
             'certNum': arr[1],
