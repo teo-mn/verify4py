@@ -1,4 +1,3 @@
-import json
 import os
 import time
 
@@ -70,10 +69,10 @@ class Issuer:
 
         cert = self.get_certificate(hash_value)
 
-        if cert.isRevoked:  # isRevoked flag
-            raise ValueError("Certificate revoked")
+        # if cert.isRevoked:  # isRevoked flag
+        #     raise ValueError("Certificate revoked")
 
-        if cert.id > 0:  # id
+        if cert.id > 0 and not cert.isRevoked:  # id
             raise ValueError("Certificate already registered")
 
         if self.is_duplicated_cert_num(cert_num=id):
@@ -85,7 +84,6 @@ class Issuer:
             print(error)
             raise RuntimeError(error)
             # insert proof
-
 
         return (tx, None), None
 
