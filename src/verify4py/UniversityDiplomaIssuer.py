@@ -115,9 +115,7 @@ class UniversityDiplomaIssuer(Issuer):
 
         nonce = self.get_client().eth.get_transaction_count(self.get_client().to_checksum_address(self.issuer_address))
         func = self.get_contract_instance().functions.addApprovedCertification(hash_val, hash_image, hash_meta,
-                                                                               id, expire_date, desc,
-                                                                               self.get_client().to_bytes(
-                                                                                   text=signature))
+                                                                               id, expire_date, desc, signature)
         tx = func.build_transaction(
             {'from': self.issuer_address, 'gasPrice': self.get_client().to_wei('1000', 'gwei'),
              'nonce': nonce, 'gas': DEFAULT_GAS_LIMIT})
