@@ -6,6 +6,7 @@ from pdfrw import PdfReader
 import verify4py.pdf as pdf_utils
 import verify4py.utils as Utils
 from verify4py.Issuer import Issuer
+from verify4py.certify_sc_utils import DEFAULT_GAS_LIMIT
 from verify4py.json_utils import json_wrap
 
 VERSION = 'v1.0-python-university'
@@ -25,18 +26,13 @@ class UniversityDiplomaIssuer(Issuer):
                                                       hash_type,
                                                       contract_type='university')
 
-    def issue_pdf(self,
-                  id: str,
-                  source_file_path: str,
-                  destination_file_path: str,
-                  meta_data: object,
-                  expire_date: int,
-                  desc: str,
-                  additional_info: str,
-                  private_key: str = "",
-                  key_store="",
-                  passphrase: str = ""):
-
+    def prepare_issue(self,
+                      id: str,
+                      source_file_path: str,
+                      destination_file_path: str,
+                      meta_data: object,
+                      desc: str,
+                      additional_info: str):
         verifymn = {
             "issuer": {
                 "name": self.issuer_name,
@@ -69,9 +65,73 @@ class UniversityDiplomaIssuer(Issuer):
         hash_val = Utils.calc_hash(destination_file_path)
         meta_str = json_wrap(meta_data)
         hash_meta = Utils.calc_hash_str(meta_str)
+        return hash_val, hash_meta, hash_image
+
+    def issue_pdf(self,
+                  id: str,
+                  source_file_path: str,
+                  destination_file_path: str,
+                  meta_data: object,
+                  expire_date: int,
+                  desc: str,
+                  additional_info: str,
+                  private_key: str = "",
+                  key_store="",
+                  passphrase: str = ""):
+
+        hash_val, hash_meta, hash_image = self.prepare_issue(id, source_file_path, destination_file_path,
+                                                             meta_data, desc, additional_info)
         (tx, proof), error = self.issue(id, hash_val, expire_date, desc, private_key, key_store, passphrase,
                                         hash_image=hash_image, hash_json=hash_meta)
         return tx, error
+
+    def issued_pdf_with_signature(self,
+                                  id: str,
+                                  source_file_path: str,
+                                  destination_file_path: str,
+                                  meta_data: object,
+                                  expire_date: int,
+                                  desc: str,
+                                  additional_info: str,
+                                  signature: str,
+                                  private_key: str = "",
+                                  key_store="",
+                                  passphrase: str = ""):
+        hash_val, hash_meta, hash_image = self.prepare_issue(id, source_file_path, destination_file_path,
+                                                             meta_data, desc, additional_info)
+        pk = self.get_pk(private_key, key_store, passphrase)
+
+        # check credit
+        if self.get_credit(self.issuer_address) == 0:
+            raise ValueError("Not enough credit")
+
+        cert = self.get_certificate(hash_val)
+
+        if cert.id > 0 and not cert.isRevoked:  # id
+            raise ValueError("Certificate already registered")
+
+        if self.is_duplicated_cert_num(cert_num=id):
+            raise ValueError("Certificate number already registered")
+
+        nonce = self.get_client().eth.get_transaction_count(self.get_client().to_checksum_address(self.issuer_address))
+        func = self.get_contract_instance().functions.addApprovedCertification(hash_val, hash_image, hash_meta,
+                                                                               id, expire_date, desc,
+                                                                               self.get_client().to_bytes(
+                                                                                   text=signature))
+        tx = func.build_transaction(
+            {'from': self.issuer_address, 'gasPrice': self.get_client().to_wei('1000', 'gwei'),
+             'nonce': nonce, 'gas': DEFAULT_GAS_LIMIT})
+        signed = self.get_client().eth.account.sign_transaction(tx, pk)
+        tx_hash = self.get_client().eth.send_raw_transaction(signed.rawTransaction)
+        tx_res = self.get_client().eth.wait_for_transaction_receipt(tx_hash)
+        if tx_res.status == 1:
+            try:
+                self.write_txid(hash_val, self.get_client().to_hex(tx_hash), self.issuer_address, pk)
+            except Exception as e:
+                print("Error occurred when sending txid" + str(e))
+            return self.get_client().to_hex(tx_hash), None
+        print(tx_res)
+        return '', 'Failed on blockchain'
 
     def revoke_pdf(self,
                    file_path: str,

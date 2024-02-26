@@ -34,6 +34,12 @@ class Issuer:
             abi = abi_cert
         self.__contract_instance = self.__client.eth.contract(address=self.smart_contract_address, abi=abi)
 
+    def get_client(self):
+        return self.__client
+
+    def get_contract_instance(self):
+        return self.__contract_instance
+
     def get_pk(self,
                private_key: str = "",
                key_store="",
