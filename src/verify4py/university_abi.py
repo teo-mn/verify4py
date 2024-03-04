@@ -61,31 +61,6 @@ abi = [
       {
         "indexed": False,
         "internalType": "address",
-        "name": "to",
-        "type": "address"
-      },
-      {
-        "indexed": False,
-        "internalType": "uint256",
-        "name": "value",
-        "type": "uint256"
-      },
-      {
-        "indexed": False,
-        "internalType": "uint256",
-        "name": "timestamp",
-        "type": "uint256"
-      }
-    ],
-    "name": "CreditCharged",
-    "type": "event"
-  },
-  {
-    "anonymous": False,
-    "inputs": [
-      {
-        "indexed": False,
-        "internalType": "address",
         "name": "issuer",
         "type": "address"
       },
@@ -98,7 +73,7 @@ abi = [
       {
         "indexed": False,
         "internalType": "string",
-        "name": "imageHash",
+        "name": "metaHash",
         "type": "string"
       },
       {
@@ -191,6 +166,55 @@ abi = [
     ],
     "name": "Revoked",
     "type": "event"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "string",
+        "name": "_hash",
+        "type": "string"
+      },
+      {
+        "internalType": "string",
+        "name": "_imageHash",
+        "type": "string"
+      },
+      {
+        "internalType": "string",
+        "name": "_metaHash",
+        "type": "string"
+      },
+      {
+        "internalType": "string",
+        "name": "_certNum",
+        "type": "string"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_expireDate",
+        "type": "uint256"
+      },
+      {
+        "internalType": "string",
+        "name": "_desc",
+        "type": "string"
+      },
+      {
+        "internalType": "bytes",
+        "name": "signature",
+        "type": "bytes"
+      }
+    ],
+    "name": "addApprovedCertification",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "function"
   },
   {
     "inputs": [
@@ -376,24 +400,6 @@ abi = [
       }
     ],
     "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "addr",
-        "type": "address"
-      },
-      {
-        "internalType": "uint256",
-        "name": "credit",
-        "type": "uint256"
-      }
-    ],
-    "name": "chargeCredit",
-    "outputs": [],
-    "stateMutability": "payable",
     "type": "function"
   },
   {
@@ -705,6 +711,30 @@ abi = [
     "inputs": [
       {
         "internalType": "string",
+        "name": "_metaHash",
+        "type": "string"
+      },
+      {
+        "internalType": "string",
+        "name": "_certNum",
+        "type": "string"
+      }
+    ],
+    "name": "getMetaCertNumHash",
+    "outputs": [
+      {
+        "internalType": "bytes32",
+        "name": "",
+        "type": "bytes32"
+      }
+    ],
+    "stateMutability": "pure",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "string",
         "name": "hash",
         "type": "string"
       }
@@ -948,6 +978,19 @@ abi = [
     "inputs": [
       {
         "internalType": "address",
+        "name": "_creditAddress",
+        "type": "address"
+      }
+    ],
+    "name": "setCreditAddress",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
         "name": "_issuerRegistrationAddress",
         "type": "address"
       }
@@ -955,6 +998,35 @@ abi = [
     "name": "setIssuerRegistrationAddress",
     "outputs": [],
     "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes",
+        "name": "sig",
+        "type": "bytes"
+      }
+    ],
+    "name": "splitSignature",
+    "outputs": [
+      {
+        "internalType": "bytes32",
+        "name": "r",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "s",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "uint8",
+        "name": "v",
+        "type": "uint8"
+      }
+    ],
+    "stateMutability": "pure",
     "type": "function"
   },
   {

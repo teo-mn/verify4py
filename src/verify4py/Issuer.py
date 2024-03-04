@@ -34,6 +34,12 @@ class Issuer:
             abi = abi_cert
         self.__contract_instance = self.__client.eth.contract(address=self.smart_contract_address, abi=abi)
 
+    def get_client(self):
+        return self.__client
+
+    def get_contract_instance(self):
+        return self.__contract_instance
+
     def get_pk(self,
                private_key: str = "",
                key_store="",
@@ -59,7 +65,8 @@ class Issuer:
               passphrase: str = "",
               do_hash=False,
               hash_image: str = "",
-              hash_json: str = ""
+              hash_json: str = "",
+              signature: str = ""
               ):
         pk = self.get_pk(private_key, key_store, passphrase)
 
@@ -79,7 +86,7 @@ class Issuer:
             raise ValueError("Certificate number already registered")
 
         tx, error = self.__issue_util(hash_value, self.issuer_address, id, expire_date, VERSION, desc, pk,
-                                      hash_image, hash_json)
+                                      hash_image, hash_json, signature)
         if error is not None:
             print(error)
             raise RuntimeError(error)
@@ -88,15 +95,21 @@ class Issuer:
         return (tx, None), None
 
     def __issue_util(self, hash_value, issuer_address, cert_num, expire_date, version, desc, pk,
-                     hash_image="", hash_json=""):
+                     hash_image="", hash_json="", signature=""):
         nonce = self.__client.eth.get_transaction_count(self.__client.to_checksum_address(issuer_address))
         try:
             if self.contract_type == "":
                 func = self.__contract_instance.functions.addCertification(hash_value, cert_num, expire_date, version,
                                                                            desc)
             else:
-                func = self.__contract_instance.functions.addCertification(hash_value, hash_image, hash_json,
-                                                                           cert_num, expire_date, desc)
+                if signature == '':
+                    func = self.__contract_instance.functions.addCertification(hash_value, hash_image, hash_json,
+                                                                               cert_num, expire_date, desc)
+                else:
+                    func = self.__contract_instance.functions.addApprovedCertification(hash_value, hash_image,
+                                                                                       hash_json,
+                                                                                       cert_num, expire_date, desc,
+                                                                                       signature)
             tx = func.build_transaction(
                 {'from': issuer_address, 'gasPrice': self.__client.to_wei('1000', 'gwei'),
                  'nonce': nonce, 'gas': DEFAULT_GAS_LIMIT})

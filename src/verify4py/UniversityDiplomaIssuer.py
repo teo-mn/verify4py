@@ -6,6 +6,7 @@ from pdfrw import PdfReader
 import verify4py.pdf as pdf_utils
 import verify4py.utils as Utils
 from verify4py.Issuer import Issuer
+from verify4py.certify_sc_utils import DEFAULT_GAS_LIMIT
 from verify4py.json_utils import json_wrap
 
 VERSION = 'v1.0-python-university'
@@ -25,18 +26,13 @@ class UniversityDiplomaIssuer(Issuer):
                                                       hash_type,
                                                       contract_type='university')
 
-    def issue_pdf(self,
-                  id: str,
-                  source_file_path: str,
-                  destination_file_path: str,
-                  meta_data: object,
-                  expire_date: int,
-                  desc: str,
-                  additional_info: str,
-                  private_key: str = "",
-                  key_store="",
-                  passphrase: str = ""):
-
+    def prepare_issue(self,
+                      id: str,
+                      source_file_path: str,
+                      destination_file_path: str,
+                      meta_data: object,
+                      desc: str,
+                      additional_info: str):
         verifymn = {
             "issuer": {
                 "name": self.issuer_name,
@@ -69,8 +65,42 @@ class UniversityDiplomaIssuer(Issuer):
         hash_val = Utils.calc_hash(destination_file_path)
         meta_str = json_wrap(meta_data)
         hash_meta = Utils.calc_hash_str(meta_str)
+        return hash_val, hash_meta, hash_image
+
+    def issue_pdf(self,
+                  id: str,
+                  source_file_path: str,
+                  destination_file_path: str,
+                  meta_data: object,
+                  expire_date: int,
+                  desc: str,
+                  additional_info: str,
+                  private_key: str = "",
+                  key_store="",
+                  passphrase: str = ""):
+
+        hash_val, hash_meta, hash_image = self.prepare_issue(id, source_file_path, destination_file_path,
+                                                             meta_data, desc, additional_info)
         (tx, proof), error = self.issue(id, hash_val, expire_date, desc, private_key, key_store, passphrase,
                                         hash_image=hash_image, hash_json=hash_meta)
+        return tx, error
+
+    def issued_pdf_with_signature(self,
+                                  id: str,
+                                  source_file_path: str,
+                                  destination_file_path: str,
+                                  meta_data: object,
+                                  expire_date: int,
+                                  desc: str,
+                                  additional_info: str,
+                                  signature: str,
+                                  private_key: str = "",
+                                  key_store="",
+                                  passphrase: str = ""):
+        hash_val, hash_meta, hash_image = self.prepare_issue(id, source_file_path, destination_file_path,
+                                                             meta_data, desc, additional_info)
+        (tx, proof), error = self.issue(id, hash_val, expire_date, desc, private_key, key_store, passphrase,
+                                        hash_image=hash_image, hash_json=hash_meta, signature=signature)
         return tx, error
 
     def revoke_pdf(self,
