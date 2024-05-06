@@ -267,6 +267,24 @@ class Issuer:
             'updatedAt': arr[9],
         })
 
+    def set_qr_code_data(self, cert_num: str, hash: str, pk: str):
+        nonce = self.__client.eth.get_transaction_count(self.__client.to_checksum_address(self.issuer_address))
+        try:
+            func = self.__contract_instance.functions.setQrCodeData(cert_num, hash)
+
+            tx = func.build_transaction(
+                {'from': self.issuer_address, 'gasPrice': self.__client.to_wei('1000', 'gwei'),
+                 'nonce': nonce, 'gas': DEFAULT_GAS_LIMIT})
+            signed = self.__client.eth.account.sign_transaction(tx, pk)
+            tx_hash = self.__client.eth.send_raw_transaction(signed.rawTransaction)
+            tx_res = self.__client.eth.wait_for_transaction_receipt(tx_hash)
+            if tx_res.status == 1:
+                return self.__client.to_hex(tx_hash), None
+            return '', 'Failed on blockchain'
+        except Exception as e:
+            print(e)
+            return '', e
+
 
 class CertStruct:
     id: int
