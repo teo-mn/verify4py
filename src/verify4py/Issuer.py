@@ -27,6 +27,7 @@ class Issuer:
         self.hash_type = hash_type
         self.contract_type = contract_type
         self.__client = Web3(Web3.HTTPProvider(node_host))
+        self.gas_price = '600'
 
         if contract_type == 'university':
             abi = abi_univ
@@ -36,6 +37,9 @@ class Issuer:
 
     def get_client(self):
         return self.__client
+
+    def set_gas_price(self, gas_price):
+        self.gas_price = gas_price
 
     def get_contract_instance(self):
         return self.__contract_instance
@@ -111,7 +115,7 @@ class Issuer:
                                                                                        cert_num, expire_date, desc,
                                                                                        signature)
             tx = func.build_transaction(
-                {'from': issuer_address, 'gasPrice': self.__client.to_wei('1000', 'gwei'),
+                {'from': issuer_address, 'gasPrice': self.__client.to_wei(self.gas_price, 'gwei'),
                  'nonce': nonce, 'gas': DEFAULT_GAS_LIMIT})
             signed = self.__client.eth.account.sign_transaction(tx, pk)
             tx_hash = self.__client.eth.send_raw_transaction(signed.rawTransaction)
@@ -131,7 +135,7 @@ class Issuer:
         nonce = self.__client.eth.get_transaction_count(self.__client.to_checksum_address(issuer_address))
         func = self.__contract_instance.functions.addTransactionId(hash_value, tx_hash)
         tx = func.build_transaction(
-            {'from': issuer_address, 'gasPrice': self.__client.to_wei('1000', 'gwei'),
+            {'from': issuer_address, 'gasPrice': self.__client.to_wei(self.gas_price, 'gwei'),
              'nonce': nonce, 'gas': DEFAULT_GAS_LIMIT})
         signed = self.__client.eth.account.sign_transaction(tx, pk)
         tx_hash2 = self.__client.eth.send_raw_transaction(signed.rawTransaction)
@@ -168,7 +172,7 @@ class Issuer:
         try:
             func = self.__contract_instance.functions.revoke(hash, revoker_name)
             tx = func.build_transaction(
-                {'from': revoker_address, 'gasPrice': self.__client.to_wei('1000', 'gwei'), 'nonce': nonce,
+                {'from': revoker_address, 'gasPrice': self.__client.to_wei(self.gas_price, 'gwei'), 'nonce': nonce,
                  'gas': DEFAULT_GAS_LIMIT})
             signed = self.__client.eth.account.sign_transaction(tx, pk)
             tx_hash = self.__client.eth.send_raw_transaction(signed.rawTransaction)
@@ -273,7 +277,7 @@ class Issuer:
             func = self.__contract_instance.functions.setQrCodeData(cert_num, hash)
 
             tx = func.build_transaction(
-                {'from': self.issuer_address, 'gasPrice': self.__client.to_wei('1000', 'gwei'),
+                {'from': self.issuer_address, 'gasPrice': self.__client.to_wei(self.gas_price, 'gwei'),
                  'nonce': nonce, 'gas': DEFAULT_GAS_LIMIT})
             signed = self.__client.eth.account.sign_transaction(tx, pk)
             tx_hash = self.__client.eth.send_raw_transaction(signed.rawTransaction)
