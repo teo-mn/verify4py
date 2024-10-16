@@ -160,3 +160,9 @@ except Exception as e:
 ```
 python setup.py sdist
 ```
+
+### Upload хийх
+
+```
+python -m twine upload dist/*
+```

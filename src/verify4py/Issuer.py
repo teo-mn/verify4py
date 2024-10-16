@@ -3,6 +3,7 @@ import time
 
 from web3 import Web3
 from web3.auto import w3
+
 import verify4py.utils as Utils
 from verify4py.certify_sc_utils import abi as abi_cert
 from verify4py.university_abi import abi as abi_univ
@@ -140,6 +141,43 @@ class Issuer:
         signed = self.__client.eth.account.sign_transaction(tx, pk)
         tx_hash2 = self.__client.eth.send_raw_transaction(signed.rawTransaction)
         self.__client.eth.wait_for_transaction_receipt(tx_hash2)
+
+    def approve(self,
+                hash_value: str,
+                private_key: str = "",
+                key_store="",
+                passphrase: str = "",
+                ):
+        pk = self.get_pk(private_key, key_store, passphrase)
+
+        if self.get_credit(self.issuer_address) == 0:
+            raise ValueError("Not enough credit")
+
+        tx, error = self.approve_util(hash_value, self.issuer_address, pk)
+
+        if error is not None:
+            print(error)
+            raise RuntimeError(error)
+
+        return tx, None
+
+    def approve_util(self, hash_value, approver_address, pk):
+        nonce = self.__client.eth.get_transaction_count(self.__client.to_checksum_address(approver_address))
+        try:
+            if self.contract_type == "university":
+                func = self.__contract_instance.functions.approve(hash_value)
+                tx = func.build_transaction(
+                    {'from': approver_address, 'gasPrice': self.__client.to_wei(self.gas_price, 'gwei'),
+                     'nonce': nonce, 'gas': DEFAULT_GAS_LIMIT})
+                signed = self.__client.eth.account.sign_transaction(tx, pk)
+                tx_hash = self.__client.eth.send_raw_transaction(signed.raw_transaction)
+                tx_res = self.__client.eth.wait_for_transaction_receipt(tx_hash)
+                if tx_res.status == 1:
+                    return self.__client.to_hex(tx_hash), None
+                return '', 'Failed on blockchain'
+        except Exception as e:
+            print(e)
+            return '', e
 
     def revoke(self,
                hash,
