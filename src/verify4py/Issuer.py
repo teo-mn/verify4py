@@ -170,7 +170,7 @@ class Issuer:
                     {'from': approver_address, 'gasPrice': self.__client.to_wei(self.gas_price, 'gwei'),
                      'nonce': nonce, 'gas': DEFAULT_GAS_LIMIT})
                 signed = self.__client.eth.account.sign_transaction(tx, pk)
-                tx_hash = self.__client.eth.send_raw_transaction(signed.raw_transaction)
+                tx_hash = self.__client.eth.send_raw_transaction(signed.rawTransaction)
                 tx_res = self.__client.eth.wait_for_transaction_receipt(tx_hash)
                 if tx_res.status == 1:
                     return self.__client.to_hex(tx_hash), None
